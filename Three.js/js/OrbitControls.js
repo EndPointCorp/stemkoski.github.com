@@ -5,10 +5,12 @@
  * @author WestLangley / http://github.com/WestLangley
  */
 
-THREE.OrbitControls = function ( object, domElement ) {
+THREE.OrbitControls = function ( object, domElement, rotateY ) {
 
 	this.object = object;
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
+        // Camera rotation for Liquid Galaxy display.
+	this.rotateY = rotateY || 0.0;
 
 	// API
 
@@ -33,6 +35,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	this.minDistance = 0;
 	this.maxDistance = Infinity;
+
+	this.broadcast = null; // callback when update
 
 	// 65 /*A*/, 83 /*S*/, 68 /*D*/
 	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40, ROTATE: 65, ZOOM: 83, PAN: 68 };
@@ -148,6 +152,17 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	};
 
+	this.setBroadcast = function (cb) {
+		this.broadcast = cb;
+	}
+
+	this.setTarget = function (newTarget) {
+		this.object.position.x = newTarget.x;
+		this.object.position.y = newTarget.y;
+		this.object.position.z = newTarget.z;
+		this.update();
+	}
+
 	this.update = function () {
 
 		var position = this.object.position;
@@ -189,6 +204,9 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		this.object.lookAt( this.center );
 
+		// Apply camera rotation for Liquid Galaxy display.
+		this.object.rotateY( rotateY );
+
 		thetaDelta = 0;
 		phiDelta = 0;
 		scale = 1;
@@ -196,6 +214,12 @@ THREE.OrbitControls = function ( object, domElement ) {
 		if ( lastPosition.distanceTo( this.object.position ) > 0 ) {
 
 			this.dispatchEvent( changeEvent );
+
+			if (this.broadcast != null) { this.broadcast({
+				x: this.object.position.x,
+				y: this.object.position.y,
+				z: this.object.position.z,
+			}); }
 
 			lastPosition.copy( this.object.position );
 

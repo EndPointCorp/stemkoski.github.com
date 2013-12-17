@@ -15,6 +15,8 @@
 <script src="js/THREEx.KeyboardState.js"></script>
 <script src="js/THREEx.FullScreen.js"></script>
 <script src="js/THREEx.WindowResize.js"></script>
+<script src="/common/viewsync.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 
 <!-- jQuery code to display an information button and box when clicked. -->
 <script src="js/jquery-1.9.1.js"></script>
@@ -47,17 +49,27 @@ var clock = new THREE.Clock();
 // custom global variables
 var android;
 
+master = location.search.match(/master=true/) != null;
+rotateY = location.search.match(/rotateY=(\-?\d+\.\d*)/);
+if (rotateY) {
+	rotateY = parseFloat(rotateY[1]);
+} else {
+	rotateY = 0.0;
+}
+
 init();
 animate();
 
 // FUNCTIONS 		
 function init() 
 {
+
 	// SCENE
 	scene = new THREE.Scene();
 	// CAMERA
 	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+	// var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+	var VIEW_ANGLE = 60, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
 	scene.add(camera);
 	camera.position.set(0,150,400);
@@ -74,7 +86,8 @@ function init()
 	THREEx.WindowResize(renderer, camera);
 	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
 	// CONTROLS
-	controls = new THREE.OrbitControls( camera, renderer.domElement );
+	controls = new THREE.OrbitControls( camera, renderer.domElement, rotateY );
+	var viewsync = VIEWSYNC.Connection( controls, master );
 	// STATS
 	stats = new Stats();
 	stats.domElement.style.position = 'absolute';
